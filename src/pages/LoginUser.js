@@ -21,7 +21,7 @@ function LoginUser({setIsAuth}) {
                 <input placeholder="First Name..."></input>
                 <input placeholder="Last Name..."></input>
                 <input placeholder="Email Name..."></input>
-                <button on={> Login </button>
+                <button onClick={}> Login </button>
             </div>
         </div>
     <div className="GoogleAuth">Login
