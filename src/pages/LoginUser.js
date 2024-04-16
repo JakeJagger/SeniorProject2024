@@ -15,11 +15,11 @@ function LoginUser({setIsAuth}) {
     };
 
     return (
-    <div className="registerUser">
+    <div className="loginUser">
             <div>
                 <h1>Register User</h1>
                 <input placeholder="First Name..."></input>
-                <input placeholder="Last Name..."></input>
+                <input placeholder="Password..."></input>
                 <input placeholder="Email Name..."></input>
                 <button> Create User </button>
             </div>
