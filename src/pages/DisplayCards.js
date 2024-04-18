@@ -1,6 +1,6 @@
 import { React, useState, useEffect } from "react";
-import { collection, addDoc, getDocs, doc, deleteDoc } from "firebase/firestore";
-import { db } from "../firebase-config";
+import { collection, addDoc, getDocs, doc, deleteDoc, Timestamp } from "firebase/firestore";
+import { db, auth, getAuth, updateProfile} from "../firebase-config";
 import { useNavigate } from "react-router-dom";
 
 function DisplayCards({isAuth}) {
@@ -16,17 +16,16 @@ function DisplayCards({isAuth}) {
 
 // Pushes the text to Firebase.
 const createCardSets = async () =>  {
-  await addDoc(cardSetsCollectionRef, { name: newName});
+  await addDoc(cardSetsCollectionRef, {setInfo: {name: newName}});
 };
 
 // Creates Set
 const [newName, setNewName] = useState("")
-const [updateName, setUpdateName] = useState("")
 
 // Allows Deletion
 const deleteCardSets = async (id) => {
-  const noteCardsDoc = doc(db, "noteCards", id)
-  await deleteDoc(noteCardsDoc);
+  const cardSetsDoc = doc(db, "cardSets", id)
+  await deleteDoc(cardSetsDoc);
 };
 
 // Connects User Creation to Firebase Database
@@ -46,19 +45,22 @@ useEffect(() => {
   return (
     <div className="App">
       <body>
+      <button onClick={createCardSets}> Save Card Set</button>
         <h1 style={{ textAlign: "center" }}></h1>
         <textarea 
           placeholder="Card Set..." 
-          value={newName} 
+          value={newName}
           onChange={(event) => {setNewName(event.target.value)}}
         />
     {cardSets.map((cardSet) => {
       return (
         <div>
           {" "}
-          <h1>
-            <div> Name: {cardSet.name} </div>
+          <h1 style={{ textAlign: "center" }}>
+            <div> Name: {cardSet.setInfo.name} </div>
           </h1>
+            <h2 style={{ textAlign: "center" }}>
+            </h2>
           <button onClick={() => {deleteCardSets(cardSet.id)}}> Delete</button></div>
       );
     })}

@@ -18,6 +18,10 @@ function CardEditor({isAuth}) {
 // Connects User Creation to Firebase Database
 const [newFrontText, setNewFrontText] = useState("")
 const [newRearText, setNewRearText] = useState("")
+const [newNoteCardReference, setNewNoteCardReference] = useState("")
+
+
+// Updates
 const [updateFrontText, setUpdateFrontText] = useState("")
 const [updateRearText, setUpdateRearText] = useState("")
 const [activeTextArea, setActiveTextArea] = useState(null);
@@ -30,16 +34,21 @@ const cardSetsCollectionRef = collection(db, "cardSets");
 
 // Pushes the text to Firebase.
 const createNoteCards = async () =>  {
-  await addDoc(noteCardsCollectionRef, { frontText: newFrontText, rearText: newRearText, user: {email: auth.currentUser.email, id: auth.currentUser.uid}});
+  await addDoc(noteCardsCollectionRef, { text:{frontText: newFrontText, rearText: newRearText}, user: {email: auth.currentUser.email, id: auth.currentUser.uid}});
 };
 
 // Allows editing of firestore Database.
-const updateNoteCards = async (id, frontText, rearText) => {
+const updateNoteCards = async (id) => {
   const noteCardsDoc = doc(db, "noteCards", id)
-  const newFields = {frontText: updateFrontText, rearText: updateRearText }
+  const newFields = { text: {frontText: updateFrontText, rearText: updateRearText}}
   await updateDoc(noteCardsDoc, newFields)
 };
 
+const updateCardSets = async (id) => {
+  const cardSetsDoc = doc(db, "noteCards", id)
+  const newFields = {frontText: newFrontText, rearText: newRearText}
+  await updateDoc(cardSetsDoc.noteCards, newFields )
+}; 
 // Allows Deletion
 const deleteNoteCards = async (id) => {
   const noteCardsDoc = doc(db, "noteCards", id)
@@ -65,17 +74,24 @@ useEffect(() => {
     };
     getCardSets();}, 
     []);
+    
+// Selects the cardset
 
 // Creates Interface for adding, saving, and deleting text.
-
 return (
     <div className="App">
       <body>
-        <button onClick={createNoteCards}> Save Note Card to Set</button>
-        <select className="nameSelect">
-        <option>None</option>
-        {cardSets.map((cardSet) => {<option value={cardSet.name}> {cardSet.name} </option>})}
-        </select>
+    <form><button onClick={createNoteCards}> Save Note Card to Set: </button>
+      <select id="setSelect">
+          <option> None </option>
+          {cardSets.map((cardSet) => {
+            return (
+              <option value={newNoteCardReference} onChange={(event) => {updateCardSets(event.target.value)}}> {cardSet.setInfo.name} </option>
+            )
+          })}
+          </select>
+          </form>
+      
         <h1 style={{ textAlign: "center" }}></h1>
         <textarea 
           className="use-keyboard-input" 
@@ -101,9 +117,9 @@ return (
         <div>
           {" "}
           <h1> Note Card: 
-            <div> Front Text: {noteCard.frontText} <textarea className="use-keyboard-input" placeholder="Update Text..." onChange={(event) => {setUpdateFrontText(event.target.value)}}>
+            <div> Front Text: {noteCard.text.frontText} <textarea className="use-keyboard-input" placeholder="Update Text..." onChange={(event) => {setUpdateFrontText(event.target.value)}}>
     </textarea> <button onClick={() => {updateNoteCards(noteCard.id, noteCard.newFrontText)}}> Update Front Text</button> </div>
-            <div> Rear Text: {noteCard.rearText} <textarea className="use-keyboard-input" placeholder="Update Text..." onChange={(event) => {setUpdateRearText(event.target.value)}}>
+            <div> Rear Text: {noteCard.text.rearText} <textarea className="use-keyboard-input" placeholder="Update Text..." onChange={(event) => {setUpdateRearText(event.target.value)}}>
     </textarea> <button onClick={() => {updateNoteCards(noteCard.id, noteCard.newRearText)}}> Update Rear Text</button> </div> 
           </h1>
           <button onClick={() => {deleteNoteCards(noteCard.id)}}> Delete</button></div>
