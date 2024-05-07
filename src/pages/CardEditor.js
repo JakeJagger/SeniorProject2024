@@ -1,4 +1,5 @@
 import { React, useState, useEffect } from "react";
+import "./CardEditor.css";
 import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from "firebase/firestore";
 import { db, auth } from "../firebase-config";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +20,7 @@ function CardEditor({isAuth}) {
 const [newFrontText, setNewFrontText] = useState("")
 const [newRearText, setNewRearText] = useState("")
 const [newNoteCardReference, setNewNoteCardReference] = useState("")
-
+const [newNoteCardName, setNewNoteCardName] = useState("");
 
 // Updates
 const [updateFrontText, setUpdateFrontText] = useState("")
@@ -34,7 +35,12 @@ const cardSetsCollectionRef = collection(db, "cardSets");
 
 // Pushes the text to Firebase.
 const createNoteCards = async () =>  {
-  await addDoc(noteCardsCollectionRef, { text:{frontText: newFrontText, rearText: newRearText}, user: {email: auth.currentUser.email, id: auth.currentUser.uid}});
+  await addDoc(noteCardsCollectionRef, { 
+    text: {frontText: newFrontText, rearText: newRearText}, 
+    user: {email: auth.currentUser.email, id: auth.currentUser.uid}, 
+    cardSet: newNoteCardReference,
+    name: newNoteCardName  // Add the note card name here
+  });
 };
 
 // Allows editing of firestore Database.
@@ -74,61 +80,91 @@ useEffect(() => {
     };
     getCardSets();}, 
     []);
-    
-// Selects the cardset
+
+  // Font size and text alignment states
+  const [fontSize, setFontSize] = useState(16);
+  const [textAlign, setTextAlign] = useState("left");
 
 // Creates Interface for adding, saving, and deleting text.
 return (
-    <div className="App">
+    <div className="cardEditor" style={{ textAlign: "center" }}>
       <body>
-    <form><button onClick={createNoteCards}> Save Note Card to Set: </button>
-      <select id="setSelect">
-          <option> None </option>
+
+        <div>
+        <button onClick={createNoteCards}> Save Note Card to Set: </button>
+        <select id="setSelect" onChange={(event) => {setNewNoteCardReference(event.target.value)}}>
+          <option value=""> None </option>
           {cardSets.map((cardSet) => {
             return (
-              <option value={newNoteCardReference} onChange={(event) => {updateCardSets(event.target.value)}}> {cardSet.setInfo.name} </option>
-            )
+            <option value={cardSet.id}> {cardSet.setInfo.name} </option>
+          )
           })}
           </select>
-          </form>
-      
-        <h1 style={{ textAlign: "center" }}></h1>
-        <textarea 
-          className="use-keyboard-input" 
-          placeholder="Front Text..." 
-          value={newFrontText} 
-          onChange={(event) => {setNewFrontText(event.target.value)}}
-          onFocus={() => setActiveTextArea('front')}
-        />
-        <textarea 
-          className="use-keyboard-input" 
-          placeholder="Rear Text..." 
-          value={newRearText} 
-          onChange={(event) => {setNewRearText(event.target.value)}}
-          onFocus={() => setActiveTextArea('rear')}
-        />
-        <Keyboard 
-          value={activeTextArea === 'front' ? newFrontText : newRearText} 
-          setValue={activeTextArea === 'front' ? setNewFrontText : setNewRearText} 
-        />
-
-    {noteCards.map((noteCard) => {
-      return (
+          <div  className="Textarea">
+            <button onClick={() => { setFontSize(fontSize - 1) }}>Font -</button>
+            <button onClick={() => { setFontSize(fontSize + 1) }}>Font +</button>
+            <button onClick={() => { setTextAlign("left") }}>Left Align</button>
+            <button onClick={() => { setTextAlign("center") }}>Center Align</button>
+            <button onClick={() => { setTextAlign("right") }}>Right Align</button>
+          </div>
+        </div>
         <div>
-          {" "}
-          <h1> Note Card: 
-            <div> Front Text: {noteCard.text.frontText} <textarea className="use-keyboard-input" placeholder="Update Text..." onChange={(event) => {setUpdateFrontText(event.target.value)}}>
-    </textarea> <button onClick={() => {updateNoteCards(noteCard.id, noteCard.newFrontText)}}> Update Front Text</button> </div>
-            <div> Rear Text: {noteCard.text.rearText} <textarea className="use-keyboard-input" placeholder="Update Text..." onChange={(event) => {setUpdateRearText(event.target.value)}}>
-    </textarea> <button onClick={() => {updateNoteCards(noteCard.id, noteCard.newRearText)}}> Update Rear Text</button> </div> 
-          </h1>
-          <button onClick={() => {deleteNoteCards(noteCard.id)}}> Delete</button></div>
-      );
-    })}
+        <input 
+        placeholder="Note Card Name..." 
+        value={newNoteCardName}
+        onChange={(event) => {setNewNoteCardName(event.target.value)}}
+        />
+        </div>
+        <h1>
+          <textarea
+            className="use-keyboard-input"
+            placeholder="Front Text..."
+            value={newFrontText}
+            onChange={(event) => { setNewFrontText(event.target.value) }}
+            onFocus={() => setActiveTextArea('front')}
+            style={{ fontSize: `${fontSize}px`, textAlign: `${textAlign}` }}
+          />
+          <textarea
+            className="use-keyboard-input"
+            placeholder="Back Text..."
+            value={newRearText}
+            onChange={(event) => { setNewRearText(event.target.value) }}
+            onFocus={() => setActiveTextArea('rear')}
+            style={{ fontSize: `${fontSize}px`, textAlign: `${textAlign}` }}
+          />
+        </h1>
+        <div className="noteCardsContainer"> 
+  {noteCards.map((noteCard) => {
+    return (
+      <div>
+        <h1> Note Card: {noteCard.name}
+          <div> Front Text: {noteCard.text.frontText} 
+            <textarea className="use-keyboard-input" placeholder="Update Text..." onChange={(event) => {setUpdateFrontText(event.target.value)}}>
+            </textarea> 
+            <button onClick={() => {updateNoteCards(noteCard.id, noteCard.newFrontText)}}> Update Front Text</button> 
+          </div>
+          <div> Back Text: {noteCard.text.rearText} 
+            <textarea className="use-keyboard-input" placeholder="Update Text..." onChange={(event) => {setUpdateRearText(event.target.value)}}>
+            </textarea> 
+            <button onClick={() => {updateNoteCards(noteCard.id, noteCard.newRearText)}}> Update Rear Text</button> 
+          </div>
+          <button onClick={() => {deleteNoteCards(noteCard.id)}}> Delete</button>
+        </h1>
+      </div>
+    );
+  })}
+</div>
+    
     </body>
+    <Keyboard
+            value={activeTextArea === 'front' ? newFrontText : newRearText}
+            setValue={activeTextArea === 'front' ? setNewFrontText : setNewRearText}
+            dir='rtl'
+    />
   </div>
-);
 
+        
+);
 }
 
 export default CardEditor;

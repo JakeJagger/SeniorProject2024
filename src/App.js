@@ -17,17 +17,18 @@ function App() {
     signOut(auth).then(() => {
       localStorage.clear();
       setIsAuth(false);
-      window.location.pathname = "/LoginUser";
+      window.location.pathname = "/CardEditor";
     });
   };
   return (
+  <header>
     <Router>
       <nav>
         {!isAuth ? (<Link to="/LoginUser"> Login User </Link>
         ) : (
         <>
-        <Link to="/CardEditor"> Card Editor </Link>
-        <Link to="/DisplayCards"> Display Cards </Link>
+        <button><Link to="/CardEditor"> Card Editor </Link></button>
+        <button><Link to="/DisplayCards"> Card and Set Display </Link></button>
         <button onClick={signUserOut}> Log Out</button>
         </>
         )}
@@ -38,8 +39,8 @@ function App() {
         <Route path="/LoginUser" element={<LoginUser setIsAuth={setIsAuth} />}/>
       </Routes>
     </Router>
+  </header>
   );
 }
 
 export default App
-
